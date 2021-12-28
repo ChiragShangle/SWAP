@@ -1,4 +1,4 @@
-pragma solidity = 0.8.0;
+pragma solidity = 0.6.6;
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol';
 import './IUniswapV2Pair.sol';
@@ -8,6 +8,8 @@ contract LiquidityMigrator {
     IUniswapV2Router02 public router;
     IUniswapV2Pair public pair;
     IUniswapV2Router02 public routerFork;
+    IUniswapV2Pair public pairFork;
+    
     BonusToken public bonusToken;
     address public admin;
     mapping(address => uint) public unclaimedBalances;
@@ -32,7 +34,7 @@ contract LiquidityMigrator {
     function deposit(uint amount) external {
         require(migrationDone==false, 'migration already done');
         pair.transferFrom(msg.sender,address(this),amount);
-        BonusToken.mint(msg.sender,amount);
+        bonusToken.mint(msg.sender,amount);
         unclaimedBalances[msg.sender]+=amount;
     }
 
@@ -70,7 +72,7 @@ contract LiquidityMigrator {
         migrationDone = true;
 
     }
-    function claimLptokens() external { 
+    function claimLptokens() external {
         require(unclaimedBalances[msg.sender]>=0,'no unclaimed balance');
         require(migrationDone ==true,'migration bot done yet');
         uint amountToSend = unclaimedBalances[msg.sender];
